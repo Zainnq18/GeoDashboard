@@ -1,0 +1,154 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Parameter Sliders with Map</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background-color: #FFFEFF;
+      color: #333;
+      display: flex;
+    }
+    .sidebar {
+      position: fixed;
+      top: 0;
+      right: 0;
+      width: 350px;
+      height: 100vh;
+      overflow-y: auto;
+      background-color: #f0fdfa;
+      border-left: 4px solid #419794;
+      padding: 20px;
+      box-shadow: -4px 0 10px rgba(0, 0, 0, 0.1);
+    }
+    .sidebar h2 {
+      color: #419794;
+      border-bottom: 2px solid #419794;
+      padding-bottom: 5px;
+      margin-bottom: 20px;
+    }
+    .slider-container {
+      background-color: #ffffff;
+      border: 2px solid #419794;
+      border-radius: 10px;
+      padding: 12px 15px;
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 6px;
+      color: #419794;
+    }
+    input[type="range"] {
+      width: 100%;
+      accent-color: #FCB712;
+      height: 6px;
+    }
+    span {
+      color: #FCB712;
+      font-weight: bold;
+    }
+    .content {
+      flex: 1;
+      padding: 40px;
+      margin-right: 370px;
+    }
+    .map-section {
+      margin-top: 20px;
+      padding: 30px;
+      border: 3px dashed #419794;
+      border-radius: 12px;
+      background-color: #f0fdfa;
+      text-align: center;
+      color: #419794;
+      font-size: 1.2rem;
+    }
+  </style>
+</head>
+<body>
+
+<div class="content">
+  <div class="map-section">
+    <iframe src="mymap.html" width="100%" height="1558px" style="border: none;"></iframe>
+  </div>
+</div>
+
+<div class="sidebar">
+  <h2>Adjust Parameters</h2>
+
+  <div class="slider-container">
+    <label for="population">Population: <span id="population-value"></span></label>
+    <input type="range" id="population" min="0" max="100" step="1" value="50" oninput="updateValue('population', this.value)">
+  </div>
+
+  <div class="slider-container">
+    <label for="male_ratio">Male Ratio (%): <span id="male_ratio-value"></span></label>
+    <input type="range" id="male_ratio" min="0" max="100" step="1" value="50" oninput="updateValue('male_ratio', this.value)">
+  </div>
+
+  <div class="slider-container">
+    <label for="female_ratio">Female Ratio (%): <span id="female_ratio-value"></span></label>
+    <input type="range" id="female_ratio" min="0" max="100" step="1" value="50" oninput="updateValue('female_ratio', this.value)">
+  </div>
+
+  <div class="slider-container">
+    <label for="x">X: <span id="x-value"></span></label>
+    <input type="range" id="x" min="0" max="100" step="1" value="50" oninput="updateValue('x', this.value)">
+  </div>
+
+  <div class="slider-container">
+    <label for="y">Y: <span id="y-value"></span></label>
+    <input type="range" id="y" min="0" max="100" step="1" value="50" oninput="updateValue('y', this.value)">
+  </div>
+
+  <div class="slider-container">
+    <label for="z">Z: <span id="z-value"></span></label>
+    <input type="range" id="z" min="0" max="100" step="1" value="50" oninput="updateValue('z', this.value)">
+  </div>
+
+  <div class="slider-container">
+    <label for="a">A: <span id="a-value"></span></label>
+    <input type="range" id="a" min="0" max="100" step="1" value="50" oninput="updateValue('a', this.value)">
+  </div>
+
+  <div class="slider-container">
+    <label for="b">B: <span id="b-value"></span></label>
+    <input type="range" id="b" min="0" max="100" step="1" value="50" oninput="updateValue('b', this.value)">
+  </div>
+
+  <div class="slider-container">
+    <label for="c">C: <span id="c-value"></span></label>
+    <input type="range" id="c" min="0" max="100" step="1" value="50" oninput="updateValue('c', this.value)">
+  </div>
+
+  <div class="slider-container">
+    <label for="d">D: <span id="d-value"></span></label>
+    <input type="range" id="d" min="0" max="100" step="1" value="50" oninput="updateValue('d', this.value)">
+  </div>
+</div>
+
+<script>
+  function updateValue(id, val) {
+    const display = document.getElementById(id + '-value');
+    if (id === 'population') {
+      display.textContent = Number(val).toLocaleString('en-IN');
+    } else {
+      display.textContent = val;
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    const sliders = ['population', 'male_ratio', 'female_ratio', 'x', 'y', 'z', 'a', 'b', 'c', 'd'];
+    sliders.forEach(id => {
+      const slider = document.getElementById(id);
+      updateValue(id, slider.value);
+    });
+  });
+</script>
+
+</body>
+</html>
