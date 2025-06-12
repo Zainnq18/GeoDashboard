@@ -1,0 +1,1716 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>GeoDashboard - Analytics</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <style>
+    :root {
+      --primary: #419794;
+      --primary-light: #e0f2f1;
+      --primary-dark: #2d6e6c;
+      --accent: #FCB712;
+      --accent-light: #ffedc2;
+      --text: #2d3748;
+      --text-light: #4a5568;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --border: #e2e8f0;
+      --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+      --radius-sm: 6px;
+      --radius-md: 8px;
+      --radius-lg: 12px;
+      --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      color: var(--text);
+      background-color: var(--bg);
+      line-height: 1.5;
+    }
+
+    /* Modern Navbar */
+    .navbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background-color: rgba(255, 255, 255, 0.95);
+      padding: 12px 24px;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 1100;
+      backdrop-filter: blur(8px);
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    }
+
+    .navbar-left,
+    .navbar-right {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+    }
+
+    .logo {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .navbar a {
+      text-decoration: none;
+      color: var(--text-light);
+      font-size: 0.875rem;
+      font-weight: 500;
+      transition: var(--transition);
+      padding: 8px 0;
+      position: relative;
+    }
+
+    .navbar a:hover {
+      color: var(--primary);
+    }
+
+    .navbar a::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 0;
+      height: 2px;
+      background-color: var(--primary);
+      transition: var(--transition);
+    }
+
+    .navbar a:hover::after {
+      width: 100%;
+    }
+
+    .navbar a.active {
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    .navbar a.active::after {
+      width: 100%;
+      background-color: var(--accent);
+    }
+
+    .signin-btn {
+      padding: 8px 16px;
+      font-weight: 600;
+      color: var(--primary);
+      background-color: #FFFFFF;
+      text-decoration: none;
+      transition: var(--transition);
+    }
+
+    .signin-btn:hover {
+      transform: translateY(-1px);
+    }
+      
+.reset-btn {
+  padding: 8px 16px;
+  font-weight: 600;
+  color: var(--primary);
+  background-color: #FFFFFF;
+  border: 1px solid var(--primary);
+  text-decoration: none;
+  transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+  cursor: pointer;
+  border-radius: 4px; /* Optional: smoother look */
+}
+
+.reset-btn:hover {
+  background-color: var(--primary);
+  color: #FFFFFF;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border-color: var(--primary);
+}
+
+
+    /* Main Layout */
+    .main {
+      display: flex;
+      min-height: calc(100vh - 56px);
+      padding: 24px;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .dashboard-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .dashboard-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin: 0;
+    }
+
+    .dashboard-controls {
+      display: flex;
+      gap: 16px;
+    }
+
+    .card {
+      background-color: var(--card-bg);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+      padding: 24px;
+      margin-bottom: 24px;
+      transition: var(--transition);
+    }
+
+    .card:hover {
+      box-shadow: var(--shadow-lg);
+      transform: translateY(-2px);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .card-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--primary-dark);
+      margin: 0;
+    }
+
+    .chart-container {
+      position: relative;
+      height: 400px;
+      width: 100%;
+    }
+
+    .visualization-selector {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .visualization-selector select {
+      padding: 8px 12px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      font-size: 0.875rem;
+      background-color: var(--card-bg);
+      color: var(--text);
+      transition: var(--transition);
+    }
+
+    .visualization-selector select:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(65, 151, 148, 0.2);
+    }
+
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 24px;
+    }
+
+    .metric-card {
+      background-color: var(--card-bg);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-sm);
+      padding: 16px;
+      transition: var(--transition);
+    }
+
+    .metric-card:hover {
+      box-shadow: var(--shadow-md);
+      transform: translateY(-1px);
+    }
+
+    .metric-title {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--text-light);
+      margin: 0 0 8px 0;
+    }
+
+    .metric-value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin: 0;
+    }
+
+    .metric-description {
+      font-size: 0.75rem;
+      color: var(--text-light);
+      margin: 8px 0 0 0;
+    }
+
+    /* New styles for enhanced location selectors */
+    .location-selectors {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+    
+    .location-selector {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    
+    .location-selector label {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--text-light);
+    }
+    
+    .multi-select-container {
+      position: relative;
+      width: 100%;
+    }
+    
+    .multi-select-button {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      font-size: 0.875rem;
+      background-color: var(--card-bg);
+      color: var(--text);
+      text-align: left;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .multi-select-button::after {
+      content: '▼';
+      font-size: 0.7em;
+      margin-left: 10px;
+    }
+    
+    .multi-select-dropdown {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      width: 100%;
+      max-height: 300px;
+      overflow-y: auto;
+      background-color: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      box-shadow: var(--shadow-md);
+      z-index: 1000;
+      display: none;
+      margin-top: 5px;
+    }
+    
+    .multi-select-dropdown.show {
+      display: block;
+    }
+    
+    .multi-select-search {
+      padding: 8px;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      background-color: var(--card-bg);
+      z-index: 1;
+    }
+    
+    .multi-select-search input {
+      width: 100%;
+      padding: 6px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+    }
+    
+    .multi-select-options {
+      padding: 8px 0;
+    }
+    
+    .multi-select-option {
+      padding: 8px 16px;
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+    }
+    
+    .multi-select-option:hover {
+      background-color: var(--primary-light);
+    }
+    
+    .multi-select-option input {
+      margin-right: 8px;
+      accent-color: var(--primary);
+    }
+    
+    .multi-select-actions {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px;
+      border-top: 1px solid var(--border);
+      position: sticky;
+      bottom: 0;
+      background-color: var(--card-bg);
+    }
+    
+    .selected-items-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+    }
+    
+    .selected-item {
+      background-color: var(--primary-light);
+      color: var(--primary-dark);
+      padding: 4px 8px;
+      border-radius: var(--radius-sm);
+      font-size: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    
+    .selected-item button {
+      background: none;
+      border: none;
+      color: var(--primary-dark);
+      cursor: pointer;
+      font-size: 0.75rem;
+      padding: 0;
+      display: flex;
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 1024px) {
+      .metrics-grid {
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      }
+    }
+
+    @media (max-width: 768px) {
+      .main {
+        padding: 16px;
+      }
+      
+      .dashboard-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+      }
+      
+      .dashboard-controls {
+        width: 100%;
+        flex-direction: column;
+        gap: 8px;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .navbar {
+        padding: 12px;
+      }
+      
+      .navbar-left,
+      .navbar-right {
+        gap: 12px;
+      }
+      
+      .base-layer-toggle {
+        display: none;
+      }
+      
+      .metrics-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .location-selectors {
+        grid-template-columns: 1fr;
+      }
+    }
+  /* Add download button styles */
+  .download-btn {
+    padding: 6px 12px;
+    background-color: var(--primary);
+    color: white;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .download-btn:hover {
+    background-color: var(--primary-dark);
+    transform: translateY(-1px);
+  }
+
+  /* Adjust chart controls layout */
+  .chart-controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+      
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #main, #main * {
+    visibility: visible;
+  }
+  #main {
+    position: absolute;
+    left: 0;
+    top: 0;
+  }
+  #pdfHeader, #pdfWatermark {
+    visibility: visible;
+  }
+}
+
+
+</style>
+</head>
+    
+<body>
+<!-- Modern Navbar -->
+<nav class="navbar">
+  <div class="navbar-left">
+    <div class="logo">GeoDashboard</div>
+    <a href="satellite.html">Map</a>
+    <a href="analytics.html" class="active">Analytics</a>
+  </div>
+  <div class="navbar-right">
+    <a href="profile.html" title="Profile"><i class="fas fa-user-circle"></i></a>
+    <a href="help.html" title="Help"><span>Help</span></a>
+    <a href="signin.html" class="signin-btn">Sign Out</a>
+  </div>
+</nav>
+
+<div id="main" class="main">
+  <div id="pdfWatermark" style="display:none; position:fixed; opacity:0.1; font-size:120px; color:#419794; z-index:9998; pointer-events:none; white-space:nowrap; top:50%; left:50%; transform:translate(-50%, -50%) rotate(-45deg);">
+    GeoDashboard
+  </div>
+  <div class="dashboard-header">
+    <h1 class="dashboard-title">Analytics Dashboard</h1>
+    <div class="dashboard-controls">
+       <button id="resetFilters" class="reset-btn">Reset Filters</button>
+       <button id="downloadPage" class="download-btn"><span>↓</span> Download PDF</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <h2 class="card-title">Location Selection</h2>
+    </div>
+    <div class="location-selectors">
+      <div class="location-selector">
+        <label for="stateMultiSelect">State</label>
+        <div class="multi-select-container">
+          <button class="multi-select-button" id="stateMultiSelectButton">Select States</button>
+          <div class="multi-select-dropdown" id="stateDropdown">
+            <div class="multi-select-search">
+              <input type="text" placeholder="Search states..." id="stateSearch">
+            </div>
+            <div class="multi-select-options" id="stateOptions"></div>
+            <div class="multi-select-actions">
+              <button class="signin-btn" id="applyStates">Apply</button>
+              <button class="signin-btn" id="clearStates">Clear</button>
+            </div>
+          </div>
+        </div>
+        <div class="selected-items-container" id="selectedStatesContainer"></div>
+      </div>
+      
+      <div class="location-selector">
+        <label for="districtMultiSelect">District</label>
+        <div class="multi-select-container">
+          <button class="multi-select-button" id="districtMultiSelectButton" disabled>Select Districts</button>
+          <div class="multi-select-dropdown" id="districtDropdown">
+            <div class="multi-select-search">
+              <input type="text" placeholder="Search districts..." id="districtSearch">
+            </div>
+            <div class="multi-select-options" id="districtOptions"></div>
+            <div class="multi-select-actions">
+              <button class="signin-btn" id="applyDistricts">Apply</button>
+              <button class="signin-btn" id="clearDistricts">Clear</button>
+            </div>
+          </div>
+        </div>
+        <div class="selected-items-container" id="selectedDistrictsContainer"></div>
+      </div>
+      
+      <div class="location-selector">
+        <label for="subDistrictMultiSelect">Sub-District</label>
+        <div class="multi-select-container">
+          <button class="multi-select-button" id="subDistrictMultiSelectButton" disabled>Select Sub-Districts</button>
+          <div class="multi-select-dropdown" id="subDistrictDropdown">
+            <div class="multi-select-search">
+              <input type="text" placeholder="Search sub-districts..." id="subDistrictSearch">
+            </div>
+            <div class="multi-select-options" id="subDistrictOptions"></div>
+            <div class="multi-select-actions">
+              <button class="signin-btn" id="applySubDistricts">Apply</button>
+              <button class="signin-btn" id="clearSubDistricts">Clear</button>
+            </div>
+          </div>
+        </div>
+        <div class="selected-items-container" id="selectedSubDistrictsContainer"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="metrics-grid">
+    <div class="metric-card">
+      <h3 class="metric-title">Total Population</h3>
+      <p class="metric-value" id="totalPopulation">-</p>
+      <p class="metric-description">Combined population of selected locations</p>
+    </div>
+    <div class="metric-card">
+      <h3 class="metric-title">Average Male Ratio</h3>
+      <p class="metric-value" id="avgMaleRatio">-</p>
+      <p class="metric-description">Average male ratio across selected locations</p>
+    </div>
+    <div class="metric-card">
+      <h3 class="metric-title">Average Female Ratio</h3>
+      <p class="metric-value" id="avgFemaleRatio">-</p>
+      <p class="metric-description">Average female ratio across selected locations</p>
+    </div>
+    <div class="metric-card">
+      <h3 class="metric-title">Total Area</h3>
+      <p class="metric-value" id="totalArea">-</p>
+      <p class="metric-description">Combined area of selected locations (sq km)</p>
+    </div>
+    <div class="metric-card">
+      <h3 class="metric-title">Average Density</h3>
+      <p class="metric-value" id="avgDensity">-</p>
+      <p class="metric-description">Average population density (per sq km)</p>
+    </div>
+    <div class="metric-card">
+      <h3 class="metric-title">Total Hospitals</h3>
+      <p class="metric-value" id="totalHospitals">-</p>
+      <p class="metric-description">Combined hospitals in selected locations</p>
+    </div>
+  </div>
+
+  <div class="card">
+<div class="card">
+  <div class="card-header">
+    <h2 class="card-title">Population Distribution</h2>
+    <div class="chart-controls">
+      <div class="visualization-selector">
+        <label for="populationChartType">Chart Type:</label>
+        <select id="populationChartType">
+          <option value="bar">Bar Chart</option>
+          <option value="pie">Pie Chart</option>
+          <option value="line">Line Chart</option>
+        </select>
+      </div>
+      <button class="download-btn" data-chart="populationChart">
+        <span>↓</span> Download
+      </button>
+    </div>
+  </div>
+  <div class="chart-container">
+    <canvas id="populationChart"></canvas>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <h2 class="card-title">Gender Ratio Comparison</h2>
+    <div class="chart-controls">
+      <button class="download-btn" data-chart="genderChart">
+        <span>↓</span> Download
+      </button>
+    </div>
+  </div>
+  <div class="chart-container">
+    <canvas id="genderChart"></canvas>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <h2 class="card-title">Urban vs Rural Population</h2>
+    <div class="chart-controls">
+      <button class="download-btn" data-chart="urbanRuralChart">
+        <span>↓</span> Download
+      </button>
+    </div>
+  </div>
+  <div class="chart-container">
+    <canvas id="urbanRuralChart"></canvas>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <h2 class="card-title">Infrastructure Comparison</h2>
+    <div class="chart-controls">
+      <div class="visualization-selector">
+        <label for="infraChartType">Chart Type:</label>
+        <select id="infraChartType">
+          <option value="bar">Bar Chart</option>
+          <option value="radar">Radar Chart</option>
+          <option value="line">Line Chart</option>
+        </select>
+      </div>
+      <button class="download-btn" data-chart="infraChart">
+        <span>↓</span> Download
+      </button>
+    </div>
+  </div>
+  <div class="chart-container">
+    <canvas id="infraChart"></canvas>
+  </div>
+</div>
+
+<script src="metrics_states.js"></script>
+<script src="final_districts.js"></script>
+<script src="final_subdistricts.js"></script>
+<script>
+  // Debug flag - set to true to enable console logging
+  const DEBUG = true;
+
+  function log(message, data = null) {
+    if (DEBUG) {
+      console.log(`[DEBUG] ${message}`, data || '');
+    }
+  }
+
+  // Format numbers with commas
+  function formatNumber(num) {
+    return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  }
+
+  // Color palette generator
+  function getColorPalette(count) {
+const baseColors = [
+  '#AEC6CF', // pastel blue
+  '#FFB347', // pastel orange
+  '#B39EB5', // pastel purple
+  '#77DD77', // pastel green
+  '#FF6961', // pastel red
+  '#FDFD96', // pastel yellow
+  '#CFCFC4', // pastel gray
+  '#FFD1DC', // pastel pink
+  '#CB99C9', // soft lavender
+  '#B0E0E6', // powder blue
+  '#FADADD', // misty rose
+  '#C6E2FF', // light sky blue
+  '#D5A6BD', // pale magenta
+  '#E3E3E3', // light silver
+  '#FFDAC1', // peach
+  '#E6E6FA', // lavender
+  '#D0F0C0', // tea green
+  '#FFFACD', // lemon chiffon
+  '#E0BBE4', // soft violet
+  '#F5E1FD'  // baby lavender
+];
+    const colors = [];
+    for (let i = 0; i < count; i++) {
+      colors.push(baseColors[i % baseColors.length]);
+    }
+    return colors;
+  }
+
+// Define chart variables at the top
+let populationChart, genderChart, urbanRuralChart, infraChart;
+
+// Selected locations
+let selectedStates = [];
+let selectedDistricts = [];
+let selectedSubDistricts = [];
+
+// DOM elements
+const stateMultiSelectButton = document.getElementById('stateMultiSelectButton');
+const districtMultiSelectButton = document.getElementById('districtMultiSelectButton');
+const subDistrictMultiSelectButton = document.getElementById('subDistrictMultiSelectButton');
+const stateDropdown = document.getElementById('stateDropdown');
+const districtDropdown = document.getElementById('districtDropdown');
+const subDistrictDropdown = document.getElementById('subDistrictDropdown');
+const stateOptions = document.getElementById('stateOptions');
+const districtOptions = document.getElementById('districtOptions');
+const subDistrictOptions = document.getElementById('subDistrictOptions');
+const stateSearch = document.getElementById('stateSearch');
+const districtSearch = document.getElementById('districtSearch');
+const subDistrictSearch = document.getElementById('subDistrictSearch');
+const applyStates = document.getElementById('applyStates');
+const clearStates = document.getElementById('clearStates');
+const applyDistricts = document.getElementById('applyDistricts');
+const clearDistricts = document.getElementById('clearDistricts');
+const applySubDistricts = document.getElementById('applySubDistricts');
+const clearSubDistricts = document.getElementById('clearSubDistricts');
+const selectedStatesContainer = document.getElementById('selectedStatesContainer');
+const selectedDistrictsContainer = document.getElementById('selectedDistrictsContainer');
+const selectedSubDistrictsContainer = document.getElementById('selectedSubDistrictsContainer');
+const resetFiltersBtn = document.getElementById('resetFilters');
+// Add this with your other DOM elements
+const downloadPageBtn = document.getElementById('downloadPage');
+
+// Initialize the dashboard
+document.addEventListener('DOMContentLoaded', function() {
+  log('DOM fully loaded and parsed');
+  
+  // Check if required data is available
+  if (typeof metrics_states === 'undefined') {
+    console.error('metrics_states data is not loaded');
+    return;
+  }
+  if (typeof final_districts === 'undefined') {
+    console.error('final_districts data is not loaded');
+    return;
+  }
+  if (typeof final_subdistricts === 'undefined') {
+    console.error('final_subdistricts data is not loaded');
+    return;
+  }
+  
+  log('All required data loaded:', {
+    states: metrics_states.length,
+    districts: final_districts.length,
+    subdistricts: final_subdistricts.length
+  });
+  
+  // Populate all dropdowns
+  populateStatesDropdown();
+  populateDistrictsDropdown();
+  populateSubDistrictsDropdown();
+  
+  // Ensure dropdown buttons are always enabled
+  districtMultiSelectButton.disabled = false;
+  subDistrictMultiSelectButton.disabled = false;
+  
+  // Set up event listeners
+  setupEventListeners();
+  
+  // Initialize charts
+  initCharts();
+  updateCharts();
+});
+
+function populateStatesDropdown() {
+  log('Populating states dropdown');
+  
+  if (!metrics_states || !Array.isArray(metrics_states)) {
+    console.error('metrics_states is not defined or not an array');
+    return;
+  }
+  
+  const uniqueStates = [...new Set(metrics_states.map(state => state.stname.toLowerCase()))];
+  log('Unique states found:', uniqueStates);
+  
+  stateOptions.innerHTML = '';
+  
+  uniqueStates.forEach(state => {
+    const option = document.createElement('div');
+    option.className = 'multi-select-option';
+    option.innerHTML = `
+      <input type="checkbox" id="state-${state.replace(/\s+/g, '-')}" value="${state}">
+      <label for="state-${state.replace(/\s+/g, '-')}">${state}</label>
+    `;
+    stateOptions.appendChild(option);
+  });
+  
+  updateCheckboxSelections('state', selectedStates);
+}
+
+function populateDistrictsDropdown() {
+  log('Populating districts dropdown', { selectedStates });
+  
+  if (!final_districts || !Array.isArray(final_districts)) {
+    console.error('final_districts is not defined or not an array');
+    return;
+  }
+  
+  let districtsToShow = final_districts;
+  
+  // If states are selected, filter districts to only show those from selected states
+  if (selectedStates.length > 0) {
+    districtsToShow = final_districts.filter(d => 
+      selectedStates.includes(d.stname.toLowerCase())
+    );
+  }
+  
+  const uniqueDistricts = [...new Set(districtsToShow.map(d => d.dtname))];
+  log('Unique districts found:', uniqueDistricts);
+  
+  districtOptions.innerHTML = '';
+  
+  uniqueDistricts.forEach(district => {
+    const option = document.createElement('div');
+    option.className = 'multi-select-option';
+    option.innerHTML = `
+      <input type="checkbox" id="district-${district.replace(/\s+/g, '-')}" value="${district}">
+      <label for="district-${district.replace(/\s+/g, '-')}">${district}</label>
+    `;
+    districtOptions.appendChild(option);
+  });
+  
+  updateCheckboxSelections('district', selectedDistricts);
+}
+
+function populateSubDistrictsDropdown() {
+  log('Populating subdistricts dropdown', { selectedStates, selectedDistricts });
+  
+  if (!final_subdistricts || !Array.isArray(final_subdistricts)) {
+    console.error('final_subdistricts is not defined or not an array');
+    return;
+  }
+  
+  let subDistrictsToShow = final_subdistricts;
+  
+  // If districts are selected, filter subdistricts to only show those from selected districts
+  if (selectedDistricts.length > 0) {
+    subDistrictsToShow = final_subdistricts.filter(sd => 
+      selectedDistricts.includes(sd.dtname)
+    );
+  }
+  // If no districts selected but states are selected, filter subdistricts to only show those from selected states
+  else if (selectedStates.length > 0) {
+    subDistrictsToShow = final_subdistricts.filter(sd => 
+      selectedStates.includes(sd.stname.toLowerCase())
+    );
+  }
+  
+  const uniqueSubDistricts = [...new Set(subDistrictsToShow.map(sd => sd.sdtname))];
+  log('Unique subdistricts found:', uniqueSubDistricts);
+  
+  subDistrictOptions.innerHTML = '';
+  
+  uniqueSubDistricts.forEach(subDistrict => {
+    const option = document.createElement('div');
+    option.className = 'multi-select-option';
+    option.innerHTML = `
+      <input type="checkbox" id="subdistrict-${subDistrict.replace(/\s+/g, '-')}" value="${subDistrict}">
+      <label for="subdistrict-${subDistrict.replace(/\s+/g, '-')}">${subDistrict}</label>
+    `;
+    subDistrictOptions.appendChild(option);
+  });
+  
+  updateCheckboxSelections('subdistrict', selectedSubDistricts);
+}
+
+function getFilteredData() {
+  log('Getting filtered data', {
+    selectedStates,
+    selectedDistricts,
+    selectedSubDistricts
+  });
+  
+  let filteredData = [];
+  
+  // Case 1: Only subdistricts selected (compare subdistricts across any states/districts)
+  if (selectedSubDistricts.length > 0) {
+    log('Subdistricts selected - comparing subdistricts');
+    filteredData = final_subdistricts.filter(sd => 
+      selectedSubDistricts.includes(sd.sdtname)
+    ).map(subDistrict => ({
+      stname: `${subDistrict.sdtname}`,
+      Population: subDistrict.Population,
+      "Male Ratio": subDistrict["Male Ratio"],
+      "Female Ratio": subDistrict["Female Ratio"],
+      "Rural population": subDistrict["Rural Population"],
+      "Urban population": subDistrict["Urban Population"],
+      Area: subDistrict.Area,
+      Density: subDistrict.Density,
+      Hospitals: subDistrict.Hospitals,
+      "Police Stations": subDistrict["Police Stations"],
+      "Railway Stations": subDistrict["Railway Stations "],
+      Airports: subDistrict.Airports
+    }));
+  }
+  // Case 2: Only districts selected (compare districts across any states)
+  else if (selectedDistricts.length > 0) {
+    log('Districts selected - comparing districts');
+    filteredData = final_districts.filter(d => 
+      selectedDistricts.includes(d.dtname)
+    ).map(district => ({
+      stname: `${district.dtname}`,
+      Population: district.Population,
+      "Male Ratio": district["Male Ratio"],
+      "Female Ratio": district["Female Ratio"],
+      "Rural population": district["Rural Population"],
+      "Urban population": district["Urban Population"],
+      Area: district.Area,
+      Density: district.Density,
+      Hospitals: district.Hospitals,
+      "Police Stations": district["Police Stations"],
+      "Railway Stations": district["Railway Stations "],
+      Airports: district.Airports
+    }));
+  }
+  // Case 3: Only states selected
+  else if (selectedStates.length > 0) {
+    log('Only states selected');
+    filteredData = metrics_states.filter(state => 
+      selectedStates.includes(state.stname.toLowerCase())
+    );
+  }
+  // Case 4: Nothing selected - show all states
+  else {
+    log('No selections - using all states');
+    filteredData = [...metrics_states];
+  }
+  
+  log('Filtered data result:', filteredData);
+  return filteredData;
+}
+
+// [Rest of the functions remain exactly the same as in your original code]
+// Only the initialization, dropdown population, and filtered data logic needed to be modified
+    
+  function updateCheckboxSelections(type, selectedValues) {
+    log(`Updating checkbox selections for ${type}`, selectedValues);
+    
+    const container = type === 'state' ? stateOptions : 
+                     type === 'district' ? districtOptions : 
+                     subDistrictOptions;
+    
+    if (!container) {
+      console.error(`Container not found for type: ${type}`);
+      return;
+    }
+    
+    const checkboxes = container.querySelectorAll('input[type="checkbox"]');
+    checkboxes.forEach(checkbox => {
+      checkbox.checked = selectedValues.includes(checkbox.value);
+    });
+  }
+
+  function updateSelectedItemsDisplay() {
+    log('Updating selected items display', {
+      selectedStates,
+      selectedDistricts,
+      selectedSubDistricts
+    });
+    
+    selectedStatesContainer.innerHTML = '';
+    selectedStates.forEach(state => {
+      const item = document.createElement('div');
+      item.className = 'selected-item';
+      item.innerHTML = `
+        ${state}
+        <button class="remove-item" data-type="state" data-value="${state}">✕</button>
+      `;
+      selectedStatesContainer.appendChild(item);
+    });
+    
+    selectedDistrictsContainer.innerHTML = '';
+    selectedDistricts.forEach(district => {
+      const item = document.createElement('div');
+      item.className = 'selected-item';
+      item.innerHTML = `
+        ${district}
+        <button class="remove-item" data-type="district" data-value="${district}">✕</button>
+      `;
+      selectedDistrictsContainer.appendChild(item);
+    });
+    
+    selectedSubDistrictsContainer.innerHTML = '';
+    selectedSubDistricts.forEach(subDistrict => {
+      const item = document.createElement('div');
+      item.className = 'selected-item';
+      item.innerHTML = `
+        ${subDistrict}
+        <button class="remove-item" data-type="subdistrict" data-value="${subDistrict}">✕</button>
+      `;
+      selectedSubDistrictsContainer.appendChild(item);
+    });
+    
+    // Add event listeners to remove buttons
+    document.querySelectorAll('.remove-item').forEach(button => {
+      button.addEventListener('click', function() {
+        const type = this.getAttribute('data-type');
+        const value = this.getAttribute('data-value');
+        log(`Removing ${type}: ${value}`);
+        
+        if (type === 'state') {
+          selectedStates = selectedStates.filter(item => item !== value);
+          const districtsInState = final_districts
+            .filter(d => d.stname.toLowerCase() === value)
+            .map(d => d.dtname);
+          selectedDistricts = selectedDistricts.filter(d => !districtsInState.includes(d));
+          
+          const subDistrictsInState = final_subdistricts
+            .filter(sd => sd.stname.toLowerCase() === value)
+            .map(sd => sd.sdtname);
+          selectedSubDistricts = selectedSubDistricts.filter(sd => !subDistrictsInState.includes(sd));
+        } else if (type === 'district') {
+          selectedDistricts = selectedDistricts.filter(item => item !== value);
+          const subDistrictsInDistrict = final_subdistricts
+            .filter(sd => sd.dtname === value)
+            .map(sd => sd.sdtname);
+          selectedSubDistricts = selectedSubDistricts.filter(sd => !subDistrictsInDistrict.includes(sd));
+        } else if (type === 'subdistrict') {
+          selectedSubDistricts = selectedSubDistricts.filter(item => item !== value);
+        }
+        
+        updateSelectedItemsDisplay();
+        populateDistrictsDropdown();
+        populateSubDistrictsDropdown();
+        updateCharts();
+      });
+    });
+    
+    stateMultiSelectButton.textContent = selectedStates.length > 0 
+      ? `${selectedStates.length} States Selected` 
+      : 'Select States';
+      
+    districtMultiSelectButton.textContent = selectedDistricts.length > 0 
+      ? `${selectedDistricts.length} Districts Selected` 
+      : 'Select Districts';
+      
+    subDistrictMultiSelectButton.textContent = selectedSubDistricts.length > 0 
+      ? `${selectedSubDistricts.length} Sub-Districts Selected` 
+      : 'Select Sub-Districts';
+  }
+
+  function setupEventListeners() {
+    log('Setting up event listeners');
+    
+    // Toggle dropdowns
+    stateMultiSelectButton.addEventListener('click', function() {
+      log('State dropdown clicked');
+      stateDropdown.classList.toggle('show');
+      districtDropdown.classList.remove('show');
+      subDistrictDropdown.classList.remove('show');
+    });
+    
+    districtMultiSelectButton.addEventListener('click', function() {
+      if (!districtMultiSelectButton.disabled) {
+        log('District dropdown clicked');
+        districtDropdown.classList.toggle('show');
+        stateDropdown.classList.remove('show');
+        subDistrictDropdown.classList.remove('show');
+      } else {
+        log('District dropdown disabled - ignoring click');
+      }
+    });
+    
+    subDistrictMultiSelectButton.addEventListener('click', function() {
+      if (!subDistrictMultiSelectButton.disabled) {
+        log('Subdistrict dropdown clicked');
+        subDistrictDropdown.classList.toggle('show');
+        stateDropdown.classList.remove('show');
+        districtDropdown.classList.remove('show');
+      } else {
+        log('Subdistrict dropdown disabled - ignoring click');
+      }
+    });
+    
+    document.addEventListener('click', function(event) {
+      if (!event.target.closest('.multi-select-container')) {
+        log('Click outside dropdown - closing all');
+        stateDropdown.classList.remove('show');
+        districtDropdown.classList.remove('show');
+        subDistrictDropdown.classList.remove('show');
+      }
+    });
+    
+    stateSearch.addEventListener('input', function() {
+      log('State search input', this.value);
+      filterOptions(stateOptions, this.value.toLowerCase());
+    });
+    
+    districtSearch.addEventListener('input', function() {
+      log('District search input', this.value);
+      filterOptions(districtOptions, this.value.toLowerCase());
+    });
+    
+    subDistrictSearch.addEventListener('input', function() {
+    log('Subdistrict search input', this.value);
+      filterOptions(subDistrictOptions, this.value.toLowerCase());
+    });
+    
+    // Apply/Clear buttons
+    applyStates.addEventListener('click', function() {
+      log('Applying state selections');
+      selectedStates = getSelectedValues(stateOptions);
+      updateSelectedItemsDisplay();
+      populateDistrictsDropdown();
+      populateSubDistrictsDropdown();
+      updateCharts();
+      stateDropdown.classList.remove('show');
+    });
+    
+    clearStates.addEventListener('click', function() {
+      log('Clearing state selections');
+      selectedStates = [];
+      selectedDistricts = [];
+      selectedSubDistricts = [];
+      updateSelectedItemsDisplay();
+      populateDistrictsDropdown();
+      populateSubDistrictsDropdown();
+      updateCharts();
+      stateDropdown.classList.remove('show');
+    });
+    
+    applyDistricts.addEventListener('click', function() {
+      log('Applying district selections');
+      selectedDistricts = getSelectedValues(districtOptions);
+      updateSelectedItemsDisplay();
+      populateSubDistrictsDropdown();
+      updateCharts();
+      districtDropdown.classList.remove('show');
+    });
+    
+    clearDistricts.addEventListener('click', function() {
+      log('Clearing district selections');
+      selectedDistricts = [];
+      selectedSubDistricts = [];
+      updateSelectedItemsDisplay();
+      populateSubDistrictsDropdown();
+      updateCharts();
+      districtDropdown.classList.remove('show');
+    });
+    
+    applySubDistricts.addEventListener('click', function() {
+      log('Applying subdistrict selections');
+      selectedSubDistricts = getSelectedValues(subDistrictOptions);
+      updateSelectedItemsDisplay();
+      updateCharts();
+      subDistrictDropdown.classList.remove('show');
+    });
+    
+    clearSubDistricts.addEventListener('click', function() {
+      log('Clearing subdistrict selections');
+      selectedSubDistricts = [];
+      updateSelectedItemsDisplay();
+      updateCharts();
+      subDistrictDropdown.classList.remove('show');
+    });
+    
+    // Reset filters button
+    resetFiltersBtn.addEventListener('click', function() {
+      log('Resetting all filters');
+      selectedStates = [];
+      selectedDistricts = [];
+      selectedSubDistricts = [];
+      updateSelectedItemsDisplay();
+      populateStatesDropdown();
+      populateDistrictsDropdown();
+      populateSubDistrictsDropdown();
+      updateCharts();
+      
+      // Close all dropdowns
+      stateDropdown.classList.remove('show');
+      districtDropdown.classList.remove('show');
+      subDistrictDropdown.classList.remove('show');
+    });
+    
+    // Chart type selectors
+    document.getElementById('populationChartType').addEventListener('change', function() {
+      log('Population chart type changed', this.value);
+      updatePopulationChart();
+    });
+    
+    document.getElementById('infraChartType').addEventListener('change', function() {
+      log('Infrastructure chart type changed', this.value);
+      updateInfraChart();
+    });
+      
+    // Chart download buttons
+  document.querySelectorAll('.download-btn[data-chart]').forEach(button => {
+    button.addEventListener('click', function () {
+      const chartId = this.getAttribute('data-chart');
+      const card = this.closest('.card');
+      const chartTitle = card?.querySelector('.card-title')?.textContent || chartId;
+      const filename = `${chartTitle.replace(/\s+/g, '_')}.png`;
+      downloadChart(chartId, filename);
+    });
+  });
+      
+  // Add this to your setupEventListeners function
+ downloadPageBtn.addEventListener('click', downloadPageAsPDF);
+
+  }
+
+  function filterOptions(container, searchTerm) {
+    log(`Filtering options in ${container.id} for: ${searchTerm}`);
+    const options = container.querySelectorAll('.multi-select-option');
+    
+    options.forEach(option => {
+      const text = option.textContent.toLowerCase();
+      if (text.includes(searchTerm)) {
+        option.style.display = 'flex';
+      } else {
+        option.style.display = 'none';
+      }
+    });
+  }
+
+  function getSelectedValues(container) {
+    log(`Getting selected values from ${container.id}`);
+    const checkboxes = container.querySelectorAll('input[type="checkbox"]:checked');
+    return Array.from(checkboxes).map(checkbox => checkbox.value);
+  }
+
+  function initCharts() {
+    log('Initializing charts');
+    
+    // Population Chart
+    const populationCtx = document.getElementById('populationChart').getContext('2d');
+    populationChart = new Chart(populationCtx, {
+      type: 'bar',
+      data: { labels: [], datasets: [] },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'top' },
+          tooltip: { mode: 'index', intersect: false },
+          datalabels: { display: false }
+        },
+        scales: {
+          y: { beginAtZero: true }
+        }
+      }
+    });
+    
+    // Gender Chart
+    const genderCtx = document.getElementById('genderChart').getContext('2d');
+    genderChart = new Chart(genderCtx, {
+      type: 'bar',
+      data: { labels: [], datasets: [] },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'top' },
+          tooltip: { mode: 'index', intersect: false }
+        },
+        scales: {
+          y: { beginAtZero: true }
+        }
+      }
+    });
+    
+    // Urban Rural Chart
+    const urbanRuralCtx = document.getElementById('urbanRuralChart').getContext('2d');
+    urbanRuralChart = new Chart(urbanRuralCtx, {
+      type: 'bar',
+      data: { labels: [], datasets: [] },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'top' },
+          tooltip: { mode: 'index', intersect: false }
+        },
+        scales: {
+          y: { beginAtZero: true }
+        }
+      }
+    });
+    
+    // Infrastructure Chart
+    const infraCtx = document.getElementById('infraChart').getContext('2d');
+    infraChart = new Chart(infraCtx, {
+      type: 'bar',
+      data: { labels: [], datasets: [] },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'top' },
+          tooltip: { mode: 'index', intersect: false }
+        },
+        scales: {
+          y: { beginAtZero: true }
+        }
+      }
+    });
+  }
+
+  function updateCharts() {
+    log('Updating all charts');
+    updateMetrics();
+    updatePopulationChart();
+    updateGenderChart();
+    updateUrbanRuralChart();
+    updateInfraChart();
+  }
+
+  function updateMetrics() {
+    log('Updating metrics');
+    const data = getFilteredData();
+    
+    if (data.length === 0) {
+      log('No data to display for metrics');
+      document.getElementById('totalPopulation').textContent = '-';
+      document.getElementById('avgMaleRatio').textContent = '-';
+      document.getElementById('avgFemaleRatio').textContent = '-';
+      document.getElementById('totalArea').textContent = '-';
+      document.getElementById('avgDensity').textContent = '-';
+      document.getElementById('totalHospitals').textContent = '-';
+      return;
+    }
+    
+    // Calculate metrics
+    const totalPopulation = data.reduce((sum, item) => sum + (item.Population || 0), 0);
+    const avgMaleRatio = data.reduce((sum, item) => sum + (item["Male Ratio"] || 0), 0) / data.length;
+    const avgFemaleRatio = data.reduce((sum, item) => sum + (item["Female Ratio"] || 0), 0) / data.length;
+    const totalArea = data.reduce((sum, item) => sum + (item.Area || 0), 0);
+    const avgDensity = data.reduce((sum, item) => sum + (item.Density || 0), 0) / data.length;
+    const totalHospitals = data.reduce((sum, item) => sum + (item.Hospitals || 0), 0);
+    
+    // Update DOM
+    document.getElementById('totalPopulation').textContent = formatNumber(totalPopulation);
+    document.getElementById('avgMaleRatio').textContent = avgMaleRatio.toFixed(2);
+    document.getElementById('avgFemaleRatio').textContent = avgFemaleRatio.toFixed(2);
+    document.getElementById('totalArea').textContent = formatNumber(totalArea);
+    document.getElementById('avgDensity').textContent = avgDensity.toFixed(2);
+    document.getElementById('totalHospitals').textContent = formatNumber(totalHospitals);
+  }
+
+function updatePopulationChart() {
+  log('Updating population chart');
+  const data = getFilteredData();
+  const chartType = document.getElementById('populationChartType').value;
+
+  if (populationChart) {
+    populationChart.destroy();
+  }
+
+  const ctx = document.getElementById('populationChart').getContext('2d');
+
+  // Get labels and data in crores
+  const labels = data.map(item => item.stname);
+  const populationData = data.map(item => (item.Population || 0) / 10000000); // Convert to crores
+  const colors = getColorPalette(data.length);
+
+  populationChart = new Chart(ctx, {
+    type: chartType,
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Population (in Crores)',
+        data: populationData,
+        backgroundColor: colors,
+        borderColor: colors.map(c => c.replace('0.6', '1')),
+        borderWidth: 1
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'top' },
+        tooltip: {
+          mode: 'index',
+          intersect: false,
+          callbacks: {
+            label: function(context) {
+              return `${context.dataset.label}: ${context.parsed.y.toFixed(2)} Cr`;
+            }
+          }
+        },
+        datalabels: { display: false }
+      },
+      scales: chartType === 'pie' || chartType === 'doughnut' ? {} : {
+        y: {
+          beginAtZero: true,
+          title: {
+            display: true,
+            text: 'Population (Crores)'
+          }
+        }
+      }
+    }
+  });
+}
+
+
+  function updateGenderChart() {
+    log('Updating gender chart');
+    const data = getFilteredData();
+    
+    if (genderChart) {
+      genderChart.destroy();
+    }
+    
+    const ctx = document.getElementById('genderChart').getContext('2d');
+    const labels = data.map(item => item.stname);
+    const maleData = data.map(item => item["Male Ratio"]);
+    const femaleData = data.map(item => item["Female Ratio"]);
+    
+    genderChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [
+          {
+            label: 'Male Ratio',
+            data: maleData,
+            backgroundColor: 'rgba(52, 152, 219, 0.7)',
+            borderColor: 'rgba(52, 152, 219, 1)',
+            borderWidth: 1
+          },
+          {
+            label: 'Female Ratio',
+            data: femaleData,
+            backgroundColor: 'rgba(255, 182, 193,0.7)',
+            borderColor: 'rgba(255, 182, 193,1)',
+            borderWidth: 1
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'top' },
+          tooltip: { mode: 'index', intersect: false }
+        },
+        scales: {
+          y: { beginAtZero: true }
+        }
+      }
+    });
+  } 
+    
+    
+function updateUrbanRuralChart() {
+  log('Updating urban/rural chart');
+  const data = getFilteredData();
+
+  if (urbanRuralChart) {
+    urbanRuralChart.destroy();
+  }
+
+  const ctx = document.getElementById('urbanRuralChart').getContext('2d');
+  const labels = data.map(item => item.stname);
+  const totalUrban = data.map(item => item["Urban population"]);
+  const totalRural = data.map(item => item["Rural population"]);
+
+  urbanRuralChart = new Chart(ctx, {
+    type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [
+          {
+            label: 'Urban Population',
+            data: totalUrban,
+            backgroundColor: 'rgba(252, 183, 18, 0.7)',
+            borderColor: 'rgba(252, 183, 18, 1.5)',
+            borderWidth: 1
+          },
+          {
+            label: 'Rural Population',
+            data: totalRural,
+            backgroundColor: 'rgba(65, 151, 148, 0.7)',
+            borderColor: 'rgba(65, 151, 148, 1.5)',
+            borderWidth: 1
+          }
+        ]
+      },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'top' },
+        tooltip: { mode: 'index', intersect: false }
+      },
+      scales: {
+        y: { beginAtZero: true }
+      }
+    }
+  });
+}
+
+  function updateInfraChart() {
+    log('Updating infrastructure chart');
+    const data = getFilteredData();
+    const chartType = document.getElementById('infraChartType').value;
+    
+    if (infraChart) {
+      infraChart.destroy();
+    }
+    
+    const ctx = document.getElementById('infraChart').getContext('2d');
+    const labels = data.map(item => item.stname);
+    
+    // Prepare infrastructure data
+    const hospitalsData = data.map(item => item.Hospitals || 0);
+    const policeData = data.map(item => item["Police Stations"] || 0);
+    const railwayData = data.map(item => item["Railway Stations "] || 0);
+    const airportsData = data.map(item => item.Airports || 0);
+    
+    infraChart = new Chart(ctx, {
+      type: chartType,
+      data: {
+        labels: labels,
+        datasets: [
+      {
+        label: 'Hospitals',
+        data: hospitalsData,
+        backgroundColor: 'rgba(65, 151, 148, 0.7)',
+        borderColor: 'rgba(65, 151, 148, 1)',
+        borderWidth: 1
+      },
+      {
+        label: 'Police Stations',
+        data: policeData,
+        backgroundColor: 'rgba(252, 183, 18, 0.7)',
+        borderColor: 'rgba(252, 183, 18, 1)',
+        borderWidth: 1
+      },
+      {
+        label: 'Railway Stations',
+        data: railwayData,
+        backgroundColor: 'rgba(52, 152, 219, 0.7)',
+        borderColor: 'rgba(52, 152, 219, 1)',
+        borderWidth: 1
+      },
+      {
+        label: 'Airports',
+        data: airportsData,
+        backgroundColor: 'rgba(231, 76, 60, 0.7)',
+        borderColor: 'rgba(231, 76, 60, 1)',
+        borderWidth: 1
+      }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'top' },
+          tooltip: { mode: 'index', intersect: false }
+        },
+        scales: chartType === 'radar' ? {} : {
+          y: { beginAtZero: true }
+        }
+      }
+    });
+  }
+    
+function downloadChart(chartId, filename) {
+  const chartCanvas = document.getElementById(chartId);
+  if (!chartCanvas) {
+    console.error(`Canvas not found for ${chartId}`);
+    return;
+  }
+
+  const chart = Chart.getChart(chartId); // Optional: get Chart.js instance if needed
+  const card = chartCanvas.closest('.card');
+  const titleElement = card?.querySelector('.card-title');
+  const titleText = titleElement ? titleElement.textContent : chartId;
+
+  // Create a temporary canvas
+  const padding = 20;
+  const titleFontSize = 50;
+  const titleFont = `${titleFontSize}px sans-serif`;
+
+  const width = chartCanvas.width;
+  const height = chartCanvas.height;
+  const totalHeight = height + titleFontSize + padding;
+
+  const tempCanvas = document.createElement('canvas');
+  tempCanvas.width = width;
+  tempCanvas.height = totalHeight;
+
+  const ctx = tempCanvas.getContext('2d');
+
+  // Draw title
+  ctx.fillStyle = '#419794';
+  ctx.font = titleFont;
+  ctx.textAlign = 'center';
+  ctx.fillText(titleText, width / 2, titleFontSize);
+
+  // Draw original chart onto temp canvas
+  ctx.drawImage(chartCanvas, 0, titleFontSize + padding / 2);
+
+  // Download
+  const link = document.createElement('a');
+  link.href = tempCanvas.toDataURL('image/png');
+  link.download = filename || `${chartId}.png`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
+
+
+// Add this function to your script
+function downloadPageAsPDF() {
+  log('Downloading page as PDF');
+  
+  // Show header and watermark temporarily
+  const pdfWatermark = document.getElementById('pdfWatermark');
+  const reportDate = document.getElementById('reportDate');
+  
+  
+  // Temporarily show elements for PDF
+  pdfWatermark.style.display = 'block';
+  
+  // Options for html2pdf
+  const options = {
+    margin: [40, 10, 40, 10],
+    filename: 'GeoDashboard_Analytics_Report.pdf',
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { 
+      scale: 2,
+      logging: true,
+      useCORS: true,
+      allowTaint: true,
+      scrollY: 0
+    },
+    jsPDF: { unit: 'mm', format: 'a3', orientation: 'portrait' },
+    pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },
+    onclone: function(clonedDoc) {
+      // Hide elements we don't want in PDF
+      clonedDoc.querySelector('.navbar').style.display = 'none';
+      
+      // Show header and watermark in cloned document
+      clonedDoc.getElementById('pdfWatermark').style.display = 'block';
+    }
+  };
+  
+  // Create PDF
+  const element = document.getElementById('main');
+  html2pdf().set(options).from(element).save().then(() => {
+    // Hide elements again after PDF generation
+    pdfWatermark.style.display = 'none';
+  });
+}
+
+</script>
+</body>
+</html>

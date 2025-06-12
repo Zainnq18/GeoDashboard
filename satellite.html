@@ -1,0 +1,1781 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>GeoDashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --primary: #419794;
+      --primary-light: #e0f2f1;
+      --primary-dark: #2d6e6c;
+      --accent: #FCB712;
+      --accent-light: #ffedc2;
+      --text: #2d3748;
+      --text-light: #4a5568;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --border: #e2e8f0;
+      --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+      --radius-sm: 6px;
+      --radius-md: 8px;
+      --radius-lg: 12px;
+      --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      color: var(--text);
+      background-color: var(--bg);
+      line-height: 1.5;
+    }
+
+    /* Modern Navbar */
+    .navbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background-color: rgba(255, 255, 255, 0.95);
+      padding: 12px 24px;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 1100;
+      backdrop-filter: blur(8px);
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    }
+
+    .navbar-left,
+    .navbar-right {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+    }
+
+    .logo {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .navbar a {
+      text-decoration: none;
+      color: var(--text-light);
+      font-size: 0.875rem;
+      font-weight: 500;
+      transition: var(--transition);
+      padding: 8px 0;
+      position: relative;
+    }
+
+    .navbar a:hover {
+      color: var(--primary);
+    }
+
+    .navbar a::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 0;
+      height: 2px;
+      background-color: var(--primary);
+      transition: var(--transition);
+    }
+
+    .navbar a:hover::after {
+      width: 100%;
+    }
+
+    .navbar a.active {
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    .navbar a.active::after {
+      width: 100%;
+      background-color: var(--accent);
+    }
+
+      
+#toggleBtn {
+  background: none;
+  border: none;
+  padding: 8px 0;
+  margin: 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-light);
+  cursor: pointer;
+  transition: var(--transition);
+  position: relative;
+}
+#toggleBtn.active {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+#toggleBtn.active::after {
+  width: 100%;
+  background-color: var(--accent);
+}
+
+
+#toggleBtn:hover {
+  color: var(--primary);
+}
+
+#toggleBtn::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background-color: var(--primary);
+  transition: var(--transition);
+}
+
+#toggleBtn:hover::after {
+  width: 100%;
+}
+
+#toggleBtn:focus {
+  outline: none;
+}
+
+
+
+
+    .signin-btn {
+      padding: 8px 16px;
+      font-weight: 600;
+      color: var(--primary);
+      text-decoration: none;
+      transition: var(--transition);
+    }
+
+    .signin-btn:hover {
+      transform: translateY(-1px);
+    }
+
+
+    /* Main Layout */
+    .main {
+      display: flex;
+      height: calc(100vh - 56px);
+    }
+
+    .content {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+      background-color: var(--card-bg);
+      padding: 20px;
+    }
+
+    #map {
+      width: 100%;
+      height: 99%;
+      transition: var(--transition);
+      background-color: white;
+    }
+
+    #map:hover {
+      box-shadow: var(--shadow-lg);
+      border-color: var(--primary-dark);
+    }
+      .leaflet-control-zoom a {
+    color:#FCB712; /* Set text/icon color */
+  }
+
+
+  /* Optional: Change hover color */
+  .leaflet-control-zoom a:hover {
+    background-color:#417974;
+    color: #FCB712 ;
+  }
+    /* Modern Sidebar - Increased to 500px */
+    .sidebar {
+      width: 800px;
+      height: 100%;
+      overflow-y: auto;
+      background-color: var(--card-bg);
+      border-left: 1px solid var(--border);
+      padding: 24px;
+      box-shadow: -4px 0 10px rgba(0, 0, 0, 0.05);
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .sidebar h2 {
+      color: var(--primary);
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin: 0 0 16px 0;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .dropdown-container {
+      margin-bottom: 12px;
+    }
+
+    select,
+    input[type="text"] {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      font-size: 0.875rem;
+      background-color: var(--card-bg);
+      color: var(--text);
+      transition: var(--transition);
+      margin-top: 6px;
+    }
+
+    select:focus,
+    input[type="text"]:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(65, 151, 148, 0.2);
+    }
+
+    #pincodeSuggestions {
+      width: 100%;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      margin-top: 4px;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+
+    #citySuggestions {
+      width: 100%;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      margin-top: 4px;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    button {
+      padding: 10px 16px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      font-weight: 500;
+      font-size: 0.875rem;
+      transition: var(--transition);
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+#submitPincodeBtn {
+  background-color: var(--primary);
+  color: white;
+  flex: 3;
+}
+
+#submitPincodeBtn:hover {
+  background-color: var(--primary-dark);
+  transform: translateY(-1px);
+}
+
+#clearPincodeBtn {
+  background-color: #ef4444;
+  color: white;
+  flex: 1;
+}
+
+#clearPincodeBtn:hover {
+  background-color: #dc2626;
+  transform: translateY(-1px);
+}
+
+#resetStatesBtn {
+  background-color: var(--accent);
+  color: white;
+  flex: 1;
+}
+
+#resetStatesBtn:hover {
+  background-color: #f4c84a;
+  transform: translateY(-1px);
+}
+
+#submitCityBtn {
+  background-color: var(--primary);
+  color: white;
+  flex: 3;
+}
+
+#submitCityBtn:hover {
+  background-color: var(--primary-dark);
+  transform: translateY(-1px);
+}
+
+#clearCityBtn {
+  background-color: #ef4444;
+  color: white;
+  flex: 1;
+}
+
+#clearCityBtn:hover {
+  background-color: #dc2626;
+  transform: translateY(-1px);
+}
+
+.sliders-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 18px 22px;
+  background: var(--card-bg);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border);
+  max-width: 320px;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.slider-card {
+  margin-bottom: 8px;
+}
+
+.slider-card label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.slider-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.slider-value {
+  min-width: 70px;
+  text-align: right;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--primary-dark);
+}
+
+input[type="range"] {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 8px;
+  border-radius: var(--radius-sm);
+  background: #f0f4f8;
+  outline: none;
+  transition: var(--transition);
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #FCB712;
+  cursor: pointer;
+  border: 2px solid white;
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition);
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+  background: var(--primary-dark);
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--primary);
+  cursor: pointer;
+  border: 2px solid white;
+  box-shadow: var(--shadow-sm);
+}
+
+input[type="range"]::-webkit-slider-runnable-track {
+  height: 8px;
+  background: linear-gradient(to right, var(--accent-light), var(--primary));
+  border-radius: var(--radius-sm);
+}
+
+input[type="range"]::-moz-range-track {
+  height: 8px;
+  background: linear-gradient(to right, var(--accent-light), var(--primary));
+  border-radius: var(--radius-sm);
+}
+    /* Responsive adjustments */
+    @media (max-width: 1024px) {
+      .main {
+        flex-direction: column;
+      }
+      
+      .sidebar {
+        width: 100%;
+        height: auto;
+        max-height: 40vh;
+        border-left: none;
+        border-top: 1px solid var(--border);
+      }
+      
+      #map {
+        height: 60vh;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .navbar {
+        padding: 12px;
+      }
+      
+      .navbar-left,
+      .navbar-right {
+        gap: 12px;
+      }
+      
+      .base-layer-toggle {
+        display: none;
+      }
+      
+      .sidebar {
+        padding: 16px;
+      }
+    
+      .sidebar {
+         scroll-behavior: smooth;
+      }
+    
+.info.legend {
+  background: white;
+  padding: 12px 16px;
+  font: 14px 'Inter', Arial, Helvetica, sans-serif;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.15);
+  border-radius: 8px;
+  line-height: 1.4;
+  color: var(--text);
+  user-select: none;
+  width: 180px;
+  border: 1px solid #ccc;  /* add border for better visibility */
+  box-sizing: border-box;
+  position: relative;
+  z-index: 10000;  /* ensure it is above map layers */
+}
+
+    #loadingScreen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: #419794;
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      font-size: 1.5rem;
+      font-weight: 500;
+      flex-direction: column;
+    }
+
+    .spinner {
+      border: 4px solid rgba(255, 255, 255, 0.3);
+      border-top: 4px solid #FCB712;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin-bottom: 16px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+
+  </style>
+</head>
+<body>
+
+<!-- Modern Navbar -->
+<nav class="navbar">
+  <div class="navbar-left">
+    <div class="logo">GeoDashboard</div>
+    <a href="satellite.html" class="active">Map</a>
+    <a href="analytics.html">Analytics</a>
+  </div>
+  <div class="navbar-right">
+<button id="toggleBtn">Heatmap</button>
+
+    <a href="profile.html" title="Profile"><i class="fas fa-user-circle"></i></a>
+    <a href="help.html" title="Help"><span>Help</span></a>
+    <a href="signin.html" class="signin-btn">Sign Out</a>
+  </div>
+</nav>
+
+<!-- Main layout -->
+<div class="main">
+  <div class="content">
+    <div id="map"></div>
+  </div>
+
+  <div class="sidebar">
+    <h2>Location Filters</h2>
+    
+    <div class="dropdown-container">
+      <label for="pincodeInput">Search by Pincode</label>
+      <input type="text" id="pincodeInput" placeholder="Enter a 6-digit pincode" />
+      <select id="pincodeSuggestions" size="5" style="display: none;"></select>
+<div class="button-group">
+  <button id="submitPincodeBtn">Submit</button>
+  <button id="clearPincodeBtn">Clear</button>
+  <button id="resetStatesBtn">Reset</button>
+</div>
+
+    </div>
+
+    <div class="dropdown-container">
+      <label for="cityInput">Search by City</label>
+      <input type="text" id="cityInput" placeholder="Enter a City" />
+      <select id="citySuggestions" size="5" style="display: none;"></select>
+<div class="button-group">
+  <button id="submitCityBtn">Submit</button>
+  <button id="clearCityBtn">Clear</button>
+</div>
+
+    </div>      
+      
+      
+    <div class="dropdown-container">
+      <label for="stateDropdown">Select State</label>
+      <select id="stateDropdown">
+        <option value="">-- Select a State --</option>
+      </select>
+    </div>
+
+    <div class="dropdown-container">
+      <label for="districtDropdown">Select District</label>
+      <select id="districtDropdown" disabled>
+        <option value="">-- Select a District --</option>
+      </select>
+    </div>
+
+    <div class="dropdown-container">
+      <label for="subDistrictDropdown">Select Sub-District</label>
+      <select id="subDistrictDropdown" disabled>
+        <option value="">-- Select a Sub-District --</option>
+      </select>
+    </div>
+
+<!-- Inside the sidebar div -->
+<h2 id="demographicFiltersHeading">Demographic Filters</h2>
+    
+    <!-- Modern Sliders -->
+    <div class="slider-container">
+      <label for="population">Population: <span id="population-value">95,00,000</span></label>
+      <input type="range" id="population" min="0" max="19000000" value="9500000" step="10000" oninput="updateValue('population', this.value)">
+    </div>
+    <div class="slider-container">
+      <label for="male_ratio">Male Ratio (per 1000 Adults): <span id="male_ratio-value">50</span></label>
+      <input type="range" id="male_ratio" min="300" max="1050" value="675" step="0.1" oninput="updateValue('male_ratio', this.value)">
+    </div>
+    <div class="slider-container">
+      <label for="female_ratio">Female Ratio (per 1000 Adults): <span id="female_ratio-value">50</span></label>
+      <input type="range" id="female_ratio" min="0" max="1000" value="500" step="0.1" oninput="updateValue('female_ratio', this.value)">
+    </div>
+    <div class="slider-container">
+      <label for="rural_population">Rural Population: <span id="rural_population-value">5,000,000</span></label>
+      <input type="range" id="rural_population" min="0" max="1000000" value="500000" step="10000" oninput="updateValue('rural_population', this.value)">
+    </div>
+    <div class="slider-container">
+      <label for="urban_population">Urban Population: <span id="urban_population-value">5,000,000</span></label>
+      <input type="range" id="urban_population" min="0" max="1000000" value="500000" step="10000" oninput="updateValue('urban_population', this.value)">
+    </div>
+    <div class="slider-container">
+      <label for="area">Area (sq km): <span id="area-value">200,000</span></label>
+      <input type="range" id="area" min="100" max="400000" value="200000" step="100" step="100" oninput="updateValue('area', this.value)">
+    </div>
+    <div class="slider-container">
+      <label for="density">Density (per sq km): <span id="density-value">7,500</span></label>
+      <input type="range" id="density" min="0" max="15000" value="7500" step="10" oninput="updateValue('density', this.value)">
+    </div>
+    <div class="slider-container">
+      <label for="hospitals">Hospitals: <span id="hospitals-value">2,500</span></label>
+      <input type="range" id="hospitals" min="0" max="5000" value="2500" step="1" oninput="updateValue('hospitals', this.value)">
+    </div>
+    <div class="slider-container">
+      <label for="railway_stations">Railway Stations: <span id="railway_stations-value">500</span></label>
+      <input type="range" id="railway_stations" min="0" max="1000" value="500" step="1" oninput="updateValue('railway_stations', this.value)">
+    </div>
+    <div class="slider-container">
+      <label for="airports">Airports: <span id="airports-value">25</span></label>
+      <input type="range" id="airports" min="0" max="50" value="25" step="1" oninput="updateValue('airports', this.value)">
+    </div>
+  </div>
+</div>
+
+<script>
+  // Format numbers with commas
+  function formatNumber(num) {
+    return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  }
+
+  // Update slider values
+  function updateValue(id, value) {
+    const formattedValue = id.includes('ratio') || id.includes('hospitals') || 
+                         id.includes('stations') || id.includes('airports') ? 
+                         value : formatNumber(value);
+    document.getElementById(`${id}-value`).textContent = formattedValue;
+  }
+
+  // Initialize values on load
+  document.addEventListener('DOMContentLoaded', function() {
+    const sliders = document.querySelectorAll('input[type="range"]');
+    sliders.forEach(slider => {
+      updateValue(slider.id, slider.value);
+    });
+  });
+</script>
+
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<!-- Turf.js -->
+<script src="https://unpkg.com/@turf/turf@6.5.0/turf.min.js"></script>
+
+<!-- Your other JS files -->
+<script src="final_districts.js"></script>
+<script src="final_subdistricts.js"></script>
+<script src="states_data.js"></script>
+<script src="districts_data.js"></script>
+<script src="sub_districts_data.js"></script>
+<script src="pincodes_data.js"></script>
+<script src="final_pincodes_data.js"></script>    
+<script src="metrics_states.js"></script>
+<script src="state_population_crores.js"></script>
+<script src="india_cities.js"></script>
+<script src="india_cities_data.js"></script>
+
+<script>
+const stateNameKeyForStates = "STNAME";
+const stateNameKeyForDistricts = "stname";
+const districtNameKey = "dtname";
+const subDistrictNameKey = "sdtname";
+const pincodeKey = "Pincode";
+const cityKey = "city";
+
+var stateMaskLayer = null;
+
+
+var map = L.map('map').setView([23.5937, 82.5629], 5);
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '© OpenStreetMap contributors'
+}).addTo(map);
+    
+
+(function createIndiaMask() {
+    // Union all states into a single polygon (turf.union expects 2 polygons max, so union iteratively)
+    let indiaUnion = states_data.features[0]; // start with first state
+
+    for (let i = 1; i < states_data.features.length; i++) {
+      indiaUnion = turf.union(indiaUnion, states_data.features[i]);
+    }
+
+    // Create world polygon (big rectangle covering whole world)
+    const world = turf.polygon([[
+      [-180, -90],
+      [180, -90],
+      [180, 90],
+      [-180, 90],
+      [-180, -90]
+    ]]);
+
+    // Subtract India polygon from world polygon to create the mask
+    const mask = turf.difference(world, indiaUnion);
+
+    // Add the mask to the map with white fill
+    L.geoJSON(mask, {
+      style: {
+        color: '#ffffff',
+        fillColor: '#ffffff',
+        fillOpacity: 1,
+        weight: 0,
+        interactive: false
+      }
+    }).addTo(map);
+
+  })();
+
+  // Declare selected layers globally
+  var selectedStateLayer = null;
+  var selectedDistrictLayer = null;
+  var selectedSubDistrictLayer = null;
+
+  // Create statesLayer and add to map (keep global reference)
+  var statesLayer = L.geoJSON(states_data, {
+    style: {
+      color: "#419794",
+      weight: 2,
+      fillColor: "#419794",
+      fillOpacity: 0.3,
+    },
+    onEachFeature: function(feature, layer) {
+      layer.bindPopup(feature.properties[stateNameKeyForStates] || "No state name");
+    }
+  }).addTo(map);
+    
+    
+    
+// Create a map from state name to population for quick lookup
+const populationByState = {};
+state_population_crores.forEach(item => {
+  populationByState[item.stname.toLowerCase()] = item.Population;
+});
+
+// Function to get color based on population (Crores)
+function getPopulationColor(population) {
+  return population > 20 ? '#800026' :
+         population > 15 ? '#BD0026' :
+         population > 10 ? '#E31A1C' :
+         population > 5  ? '#FC4E2A' :
+         population > 2  ? '#FD8D3C' :
+         population > 1  ? '#FEB24C' :
+         population > 0.5? '#FED976' :
+                          '#FFEDA0';
+}
+
+// Style function for choropleth
+function styleByPopulation(feature) {
+  const stateName = feature.properties[stateNameKeyForStates];
+  const pop = populationByState[stateName.toLowerCase()] || 0;
+  return {
+    fillColor: getPopulationColor(pop),
+    weight: 2,
+    opacity: 1,
+    color: 'white',
+    dashArray: '3',
+    fillOpacity: 0.7
+  };
+}
+
+// Create and add the choropleth layer
+var populationChoroplethLayer = L.geoJSON(states_data, {
+  style: styleByPopulation,
+  onEachFeature: function(feature, layer) {
+    const stateName = feature.properties[stateNameKeyForStates];
+    const pop = populationByState[stateName.toLowerCase()] || "Data not available";
+    layer.bindPopup(`<strong>${stateName}</strong><br>Population: ${pop} Crores`);
+  }
+});
+    
+function addPopulationLegend(map) {
+  const legend = L.control({ position: "topright" });
+
+  legend.onAdd = function () {
+    const div = L.DomUtil.create("div", "info legend population-legend");
+    
+    // Define your data ranges and colors
+    const ranges = [
+      { min: 0, max: 0.5, color: '#FFEDA0' },
+      { min: 0.5, max: 1, color: '#FED976' },
+      { min: 1, max: 2, color: '#FEB24C' },
+      { min: 2, max: 5, color: '#FD8D3C' },
+      { min: 5, max: 10, color: '#FC4E2A' },
+      { min: 10, max: 15, color: '#E31A1C' },
+      { min: 15, max: 20, color: '#BD0026' },
+      { min: 20, max: null, color: '#800026' }
+    ];
+
+    // Create title
+    const title = document.createElement('h4');
+    title.textContent = 'Population (in Crores)';
+    title.style.margin = '0 0 10px 0';
+    title.style.fontWeight = 'bold';
+    div.appendChild(title);
+
+    // Create legend items container
+    const itemsContainer = document.createElement('div');
+    itemsContainer.style.display = 'flex';
+    itemsContainer.style.flexDirection = 'column';
+    itemsContainer.style.gap = '5px';
+
+    // Add each range to the legend
+    ranges.forEach(range => {
+      const item = document.createElement('div');
+      item.style.display = 'flex';
+      item.style.alignItems = 'center';
+      item.style.gap = '8px';
+
+      // Create color box
+      const colorBox = document.createElement('div');
+      colorBox.style.width = '15px';
+      colorBox.style.height = '15px';
+      colorBox.style.backgroundColor = range.color;
+      colorBox.style.border = '1px solid #ccc';
+      colorBox.style.flexShrink = '0';
+
+      // Create label
+      const label = document.createElement('span');
+      label.style.fontSize = '10px';
+      label.style.color = '#333';
+      
+      if (range.max === null) {
+        label.textContent = `${range.min}+`;
+      } else {
+        label.textContent = `${range.min} - ${range.max}`;
+      }
+
+      item.appendChild(colorBox);
+      item.appendChild(label);
+      itemsContainer.appendChild(item);
+    });
+
+    div.appendChild(itemsContainer);
+
+    // Add some styling to the legend container
+    div.style.padding = '10px 15px';
+    div.style.backgroundColor = 'rgba(255, 255, 255, 0.9)';
+
+    return div;
+  };
+
+  legend.addTo(map);
+  return legend;
+}
+
+let populationLegend = null;
+
+const toggleBtn = document.getElementById("toggleBtn");
+
+toggleBtn.addEventListener("click", () => {
+  if (map.hasLayer(populationChoroplethLayer)) {
+    map.removeLayer(populationChoroplethLayer);
+    statesLayer.addTo(map);
+    if (populationLegend) {
+      map.removeControl(populationLegend);
+      populationLegend = null;
+    }
+    toggleBtn.classList.remove("active");
+  } else {
+    if (map.hasLayer(statesLayer)) map.removeLayer(statesLayer);
+    populationChoroplethLayer.addTo(map);
+    populationLegend = addPopulationLegend(map);
+    toggleBtn.classList.add("active");
+  }
+});
+
+
+
+var districtsLayer = null;
+var subDistrictsLayer = null;
+
+var stateDropdown = document.getElementById("stateDropdown");
+var districtDropdown = document.getElementById("districtDropdown");
+var subDistrictDropdown = document.getElementById("subDistrictDropdown");
+
+const pincodeInput = document.getElementById("pincodeInput");
+const pincodeSuggestions = document.getElementById("pincodeSuggestions");
+const submitPincodeBtn = document.getElementById("submitPincodeBtn");
+const clearPincodeBtn = document.getElementById("clearPincodeBtn");
+
+var pincodesLayer = null;
+
+const cityInput = document.getElementById("cityInput");
+const citySuggestions = document.getElementById("citySuggestions");
+const submitCityBtn = document.getElementById("submitCityBtn");
+const clearCityBtn = document.getElementById("clearCityBtn");
+
+var cityLayer = null;    
+    
+    
+function scrollToDemographicFilters() {
+  const heading = document.getElementById('demographicFiltersHeading');
+  if (heading) {
+    heading.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+}
+
+states_data.features.forEach(function(feature, idx) {
+  var option = document.createElement("option");
+  option.value = idx;
+  option.text = feature.properties[stateNameKeyForStates] || "Unnamed State";
+  stateDropdown.appendChild(option);
+});
+
+submitPincodeBtn.addEventListener("click", function () {
+  const pincode = pincodeInput.value.trim();
+  if (!/^\d{6}$/.test(pincode)) {
+    alert("Please enter a valid 6-digit pincode.");
+    return;
+  }
+
+  if (pincodesLayer) map.removeLayer(pincodesLayer);
+
+  const matched = pincodes_data.features.filter(f => f.properties.Pincode === pincode);
+  if (matched.length === 0) {
+    alert("Pincode not found.");
+    return;
+  }
+
+  pincodesLayer = L.geoJSON(matched, {
+    style: {
+      color: "#FF0000",
+      weight: 2,
+      fillColor: "#FFAAAA",
+      fillOpacity: 0.5,
+    },
+    onEachFeature: (feature, layer) => {
+      layer.bindPopup("Pincode: " + feature.properties.Pincode); // fixed
+    }
+  }).addTo(map);
+
+  map.fitBounds(pincodesLayer.getBounds());
+  toggleLocationDropdowns(true); // Disable dropdowns
+
+  // Update metric sliders
+  const metricMatch = final_pincodes_data.find(f => f.Pincode === pincode);
+  if (metricMatch) {
+    updateSlidersFromPincode(metricMatch);
+  } else {
+    console.warn("Metric data not found for pincode:", pincode);
+  }
+});
+
+pincodeSuggestions.addEventListener("change", function () {
+  const selected = this.value;
+  pincodeInput.value = selected;
+  pincodeSuggestions.style.display = "none";
+});
+
+clearPincodeBtn.addEventListener("click", function () {
+  // Clear pincode-related elements
+  pincodeInput.value = "";
+  pincodeSuggestions.innerHTML = "";
+  pincodeSuggestions.style.display = "none";
+
+  // Clear layers
+  if (pincodesLayer) {
+    map.removeLayer(pincodesLayer);
+    pincodesLayer = null;
+  }
+  if (subDistrictsLayer) {
+    map.removeLayer(subDistrictsLayer);
+    subDistrictsLayer = null;
+  }
+  if (districtsLayer) {
+    map.removeLayer(districtsLayer);
+    districtsLayer = null;
+  }
+  if (stateMaskLayer) {
+    map.removeLayer(stateMaskLayer);
+    stateMaskLayer = null;
+  }
+
+  // Clear dropdown selections
+  stateDropdown.value = "";
+  districtDropdown.innerHTML = '<option value="">-- Select a District --</option>';
+  subDistrictDropdown.innerHTML = '<option value="">-- Select a Sub-District --</option>';
+  districtDropdown.disabled = true;
+  subDistrictDropdown.disabled = true;
+
+  // Clear highlighted state
+  if (selectedStateLayer && statesLayer) {
+    statesLayer.resetStyle(selectedStateLayer);
+    selectedStateLayer = null;
+  }
+
+  // Reset all metric sliders to their default values
+  const sliders = [
+    { id: 'population', defaultValue: 9500000 },
+    { id: 'male_ratio', defaultValue: 675 },
+    { id: 'female_ratio', defaultValue: 500 },
+    { id: 'rural_population', defaultValue: 500000 },
+    { id: 'urban_population', defaultValue: 500000 },
+    { id: 'area', defaultValue: 200000 },
+    { id: 'density', defaultValue: 7500 },
+    { id: 'hospitals', defaultValue: 2500 },
+    { id: 'railway_stations', defaultValue: 500 },
+    { id: 'airports', defaultValue: 25 }
+  ];
+
+  sliders.forEach(slider => {
+    const element = document.getElementById(slider.id);
+    if (element) {
+      element.value = slider.defaultValue;
+      // Trigger the update function to refresh displayed values
+      updateValue(slider.id, slider.defaultValue);
+    }
+  });
+
+  // Reset map view
+  toggleLocationDropdowns(false);
+  if (!statesLayer) {
+    statesLayer = L.geoJSON(states_data, {
+      style: {/* your default style */},
+      onEachFeature: onEachStateFeature
+    }).addTo(map);
+  } else if (!map.hasLayer(statesLayer)) {
+    statesLayer.addTo(map);
+  }
+  map.setView([23.5937, 82.5629], 5);
+});
+    
+    
+pincodeInput.addEventListener("input", function () {
+  const value = this.value.trim();
+  pincodeSuggestions.innerHTML = "";
+
+  if (value.length < 3) {
+    pincodeSuggestions.style.display = "none";
+    return;
+  }
+
+  const matches = pincodes_data.features
+    .filter(f => f.properties.Pincode.startsWith(value))
+    .slice(0, 10);
+
+  if (matches.length > 0) {
+    pincodeSuggestions.style.display = "block";
+    matches.forEach(f => {
+      const option = document.createElement("option");
+      option.value = f.properties.Pincode;
+      option.textContent = `${f.properties.Pincode} – ${f.properties.Office_Name || "Unknown Office"}`;
+      pincodeSuggestions.appendChild(option);
+    });
+  } else {
+    pincodeSuggestions.style.display = "none";
+  }
+});
+
+    
+// City logic goes here
+    
+    
+
+submitCityBtn.addEventListener("click", function () {
+  const city = cityInput.value.trim();
+
+  if (city.length < 3) {
+    alert("Please enter at least 3 characters of the city name.");
+    return;
+  }
+
+  if (cityLayer) map.removeLayer(cityLayer);
+
+  // Match by city name (case-insensitive)
+  const matched = india_cities.features.filter(f =>
+    f.properties.city.toLowerCase() === city.toLowerCase()
+  );
+
+  if (matched.length === 0) {
+    alert("City not found.");
+    return;
+  }
+
+  cityLayer = L.geoJSON(matched, {
+    style: {
+      color: "#f803fc",
+      weight: 2,
+      fillColor: "#f803fc",
+      fillOpacity: 0.5,
+    },
+    onEachFeature: (feature, layer) => {
+      const cityName = feature.properties.city || "Unknown";
+      const office = feature.properties.Office_Name || "Unknown Office";
+      layer.bindPopup(`<b>${cityName}</b><br>Post Office: ${office}`);
+    }
+  }).addTo(map);
+
+  map.fitBounds(cityLayer.getBounds());
+  toggleLocationDropdowns(true);
+
+  // Update metric sliders from city data
+const cityMetricsArray = india_cities_data["Transformed by Data.Page"];
+const metricMatch = cityMetricsArray.find(f => f.city?.toLowerCase() === city.toLowerCase());
+
+  if (metricMatch) {
+    updateSlidersFromCity(metricMatch);
+  } else {
+    console.warn("Metric data not found for city:", city);
+  }
+});
+
+// Handle city suggestion clicks
+citySuggestions.addEventListener("click", function (e) {
+  if (e.target.tagName.toLowerCase() === "option") {
+    cityInput.value = e.target.value;
+    citySuggestions.style.display = "none";
+  }
+});
+
+// Clear city search and reset view
+clearCityBtn.addEventListener("click", function () {
+  cityInput.value = "";
+  citySuggestions.innerHTML = "";
+  citySuggestions.style.display = "none";
+
+  if (cityLayer) {
+    map.removeLayer(cityLayer);
+    cityLayer = null;
+  }
+  if (pincodesLayer) {
+    map.removeLayer(pincodesLayer);
+    pincodesLayer = null;
+  }
+  if (subDistrictsLayer) {
+    map.removeLayer(subDistrictsLayer);
+    subDistrictsLayer = null;
+  }
+  if (districtsLayer) {
+    map.removeLayer(districtsLayer);
+    districtsLayer = null;
+  }
+  if (stateMaskLayer) {
+    map.removeLayer(stateMaskLayer);
+    stateMaskLayer = null;
+  }
+
+  stateDropdown.value = "";
+  districtDropdown.innerHTML = '<option value="">-- Select a District --</option>';
+  subDistrictDropdown.innerHTML = '<option value="">-- Select a Sub-District --</option>';
+  districtDropdown.disabled = true;
+  subDistrictDropdown.disabled = true;
+
+  if (selectedStateLayer && statesLayer) {
+    statesLayer.resetStyle(selectedStateLayer);
+    selectedStateLayer = null;
+  }
+
+  const sliders = [
+    { id: 'population', defaultValue: 9500000 },
+    { id: 'male_ratio', defaultValue: 675 },
+    { id: 'female_ratio', defaultValue: 500 },
+    { id: 'rural_population', defaultValue: 500000 },
+    { id: 'urban_population', defaultValue: 500000 },
+    { id: 'area', defaultValue: 200000 },
+    { id: 'density', defaultValue: 7500 },
+    { id: 'hospitals', defaultValue: 2500 },
+    { id: 'railway_stations', defaultValue: 500 },
+    { id: 'airports', defaultValue: 25 }
+  ];
+
+  sliders.forEach(slider => {
+    const element = document.getElementById(slider.id);
+    if (element) {
+      element.value = slider.defaultValue;
+      updateValue(slider.id, slider.defaultValue);
+    }
+  });
+
+  toggleLocationDropdowns(false);
+
+  if (!statesLayer) {
+    statesLayer = L.geoJSON(states_data, {
+      style: {/* your default style */},
+      onEachFeature: onEachStateFeature
+    }).addTo(map);
+  } else if (!map.hasLayer(statesLayer)) {
+    statesLayer.addTo(map);
+  }
+
+  map.setView([23.5937, 82.5629], 5);
+});
+
+// City autosuggestion (case-insensitive)
+cityInput.addEventListener("input", function () {
+  const value = this.value.trim();
+  citySuggestions.innerHTML = "";
+
+  if (value.length < 3) {
+    citySuggestions.style.display = "none";
+    return;
+  }
+
+  const matches = india_cities.features
+    .filter(f => f.properties.city.toLowerCase().startsWith(value.toLowerCase()))
+    .slice(0, 10);
+
+  if (matches.length > 0) {
+    citySuggestions.style.display = "block";
+    matches.forEach(f => {
+      const option = document.createElement("option");
+      option.value = f.properties.city;
+      option.textContent = `${f.properties.city} – ${f.properties.Office_Name || "Unknown Office"}`;
+      citySuggestions.appendChild(option);
+    });
+  } else {
+    citySuggestions.style.display = "none";
+  }
+});
+    
+
+var stateMaskLayer = null; // Declare this globally (if not already)
+
+// Add this function somewhere near top
+function maskExceptSelectedState(selectedFeature) {
+  if (stateMaskLayer) {
+    map.removeLayer(stateMaskLayer);
+    stateMaskLayer = null;
+  }
+
+  const world = turf.polygon([[
+    [-180, -90],
+    [180, -90],
+    [180, 90],
+    [-180, 90],
+    [-180, -90]
+  ]]);
+
+  const mask = turf.difference(world, selectedFeature);
+  stateMaskLayer = L.geoJSON(mask, {
+    style: {
+      color: "#ffffff",
+      fillColor: "#ffffff",
+      fillOpacity: 1,
+      weight: 0,
+      interactive: false
+    }
+  }).addTo(map);
+}
+
+stateDropdown.addEventListener("change", function () {
+  var idx = this.value;
+
+  if (selectedStateLayer) statesLayer.resetStyle(selectedStateLayer);
+  if (selectedDistrictLayer && districtsLayer) districtsLayer.resetStyle(selectedDistrictLayer);
+  if (selectedSubDistrictLayer && subDistrictsLayer) subDistrictsLayer.resetStyle(selectedSubDistrictLayer);
+  selectedStateLayer = selectedDistrictLayer = selectedSubDistrictLayer = null;
+
+  if (districtsLayer) map.removeLayer(districtsLayer);
+  if (subDistrictsLayer) map.removeLayer(subDistrictsLayer);
+  districtsLayer = subDistrictsLayer = null;
+
+  districtDropdown.innerHTML = '<option value="">-- Select a District --</option>';
+  subDistrictDropdown.innerHTML = '<option value="">-- Select a Sub-District --</option>';
+  districtDropdown.disabled = true;
+  subDistrictDropdown.disabled = true;
+
+  if (stateMaskLayer) {
+    map.removeLayer(stateMaskLayer);
+    stateMaskLayer = null;
+  }
+
+  if (idx === "") {
+    map.setView([23.5937, 82.5629], 5);
+    return;
+  }
+
+  const stateFeature = states_data.features[idx];
+  const selectedStateName = stateFeature.properties[stateNameKeyForStates];
+
+  // Mask all other states except this one
+  maskExceptSelectedState(stateFeature);
+
+  statesLayer.eachLayer(function (layer) {
+    if (layer.feature === stateFeature) {
+      selectedStateLayer = layer;
+      layer.setStyle({ fillColor: "#07fa10", fillOpacity: 0.5, weight: 1, color: "#333" });
+      map.fitBounds(layer.getBounds());
+      layer.openPopup();
+    }
+  });
+
+  updateSlidersFromStateData(selectedStateName);
+
+  const filteredDistricts = districts_data.features.filter(d =>
+    d.properties?.[stateNameKeyForDistricts]?.toLowerCase() === selectedStateName.toLowerCase()
+  );
+
+  districtsLayer = L.geoJSON(filteredDistricts, {
+    style: { color: "#419794", weight: 1, fillColor: "#FCB712", fillOpacity: 0.5 },
+    onEachFeature: (feature, layer) =>
+      layer.bindPopup(feature.properties[districtNameKey] || "No district name")
+  }).addTo(map);
+
+  filteredDistricts.forEach(d => {
+    const name = d.properties[districtNameKey];
+    const option = document.createElement("option");
+    option.value = name;
+    option.text = name;
+    districtDropdown.appendChild(option);
+  });
+
+  districtDropdown.disabled = filteredDistricts.length === 0;
+});
+
+// --- GLOBAL FUNCTION to update sliders from district data ---
+function updateSlidersFromDistrict(districtName, stateName) {
+  console.log("Updating sliders for:", districtName, "in", stateName);
+
+  const match = final_districts.find(entry =>
+    entry.stname?.trim().toLowerCase() === stateName?.trim().toLowerCase() &&
+    entry.dtname?.trim().toLowerCase() === districtName?.trim().toLowerCase()
+  );
+
+  if (!match) {
+    console.warn("No data found for district:", districtName, "in state:", stateName);
+    return;
+  }
+
+  console.log("Matched district data:", match);
+
+  const getNum = val => {
+    if (typeof val === "number") return val;
+    if (typeof val === "string") return Number(val.replace(/,/g, "").trim());
+    return 0;
+  };
+
+  // Use exact keys from your data (note trailing space in "Railway Stations ")
+  const fields = {
+    population: "Population",
+    male_ratio: "Male Ratio",
+    female_ratio: "Female Ratio",
+    rural_population: "Rural Population",
+    urban_population: "Urban Population",
+    area: "Area",
+    density: "Density",
+    hospitals: "Hospitals",
+    railway_stations: "Railway Stations ", // trailing space intentional to match data
+    airports: "Airports"
+  };
+
+  for (const [sliderId, key] of Object.entries(fields)) {
+    const val = getNum(match[key]);
+    const slider = document.getElementById(sliderId);
+    const label = document.getElementById(`${sliderId}-value`);
+    if (slider && label) {
+      slider.value = val;
+      label.textContent = val;
+    } else {
+      console.warn(`Slider or label missing for id: ${sliderId}`);
+    }
+  }
+
+  console.log("District slider update complete.");
+}
+
+// --- Event listener for district dropdown ---
+districtDropdown.addEventListener("change", function() {
+  const selectedDistrict = this.value;
+  const selectedStateIdx = stateDropdown.value;
+  const selectedStateName = states_data.features[selectedStateIdx]?.properties[stateNameKeyForStates];
+
+  if (selectedDistrictLayer && districtsLayer) districtsLayer.resetStyle(selectedDistrictLayer);
+  selectedDistrictLayer = null;
+
+  if (!selectedDistrict) return;
+
+  districtsLayer.eachLayer(function(layer) {
+    if (layer.feature.properties[districtNameKey] === selectedDistrict) {
+      selectedDistrictLayer = layer;
+      layer.setStyle({ fillColor: "#419794", fillOpacity: 0.5, weight: 3, color: "#333" });
+      map.fitBounds(layer.getBounds());
+      layer.openPopup();
+    }
+  });
+
+  if (subDistrictsLayer) map.removeLayer(subDistrictsLayer);
+  subDistrictDropdown.innerHTML = '<option value="">-- Select a Sub-District --</option>';
+  subDistrictDropdown.disabled = true;
+
+  const filteredSubDistricts = sub_districts_data.features.filter(f =>
+    f.properties.stname?.toLowerCase() === selectedStateName.toLowerCase() &&
+    f.properties.dtname?.toLowerCase() === selectedDistrict.toLowerCase()
+  );
+
+  subDistrictsLayer = L.geoJSON(filteredSubDistricts, {
+    style: { color: "#0000FF", weight: 1, fillColor: "#9999ff", fillOpacity: 0.5 },
+    onEachFeature: (feature, layer) =>
+      layer.bindPopup(feature.properties[subDistrictNameKey] || "No sub-district name")
+  }).addTo(map);
+
+  filteredSubDistricts.forEach(f => {
+    const name = f.properties[subDistrictNameKey];
+    const option = document.createElement("option");
+    option.value = name;
+    option.text = name;
+    subDistrictDropdown.appendChild(option);
+  });
+
+  subDistrictDropdown.disabled = filteredSubDistricts.length === 0;
+
+  updateSlidersFromDistrict(selectedDistrict, selectedStateName);
+});
+
+subDistrictDropdown.addEventListener("change", function () {
+  const selectedSubDistrict = this.value;
+  const selectedStateIdx = stateDropdown.value;
+  const selectedStateName = states_data.features[selectedStateIdx]?.properties[stateNameKeyForStates];
+  const selectedDistrict = districtDropdown.value;
+
+  if (selectedSubDistrictLayer && subDistrictsLayer)
+    subDistrictsLayer.resetStyle(selectedSubDistrictLayer);
+  selectedSubDistrictLayer = null;
+
+  if (!selectedSubDistrict) return;
+
+  const subDistrictFeature = sub_districts_data.features.find(f =>
+    f.properties.stname?.toLowerCase() === selectedStateName.toLowerCase() &&
+    f.properties.dtname?.toLowerCase() === selectedDistrict.toLowerCase() &&
+    f.properties.sdtname?.toLowerCase() === selectedSubDistrict.toLowerCase()
+  );
+
+  if (!subDistrictFeature) return;
+
+  subDistrictsLayer.eachLayer(function (layer) {
+    const props = layer.feature.properties;
+    if (
+      props.stname?.toLowerCase() === selectedStateName.toLowerCase() &&
+      props.dtname?.toLowerCase() === selectedDistrict.toLowerCase() &&
+      props.sdtname?.toLowerCase() === selectedSubDistrict.toLowerCase()
+    ) {
+      selectedSubDistrictLayer = layer;
+      layer.setStyle({ fillColor: "#0000FF", fillOpacity: 0.5, weight: 3, color: "#000" });
+      map.fitBounds(layer.getBounds());
+      layer.openPopup();
+    }
+  });
+
+  updateSlidersFromSubDistrict(selectedSubDistrict, selectedDistrict, selectedStateName);
+});
+
+      
+
+function updateValue(id, value) {
+  document.getElementById(id + "-value").textContent = value;
+}
+function toggleLocationDropdowns(disable) {
+  stateDropdown.disabled = disable;
+  districtDropdown.disabled = disable || districtDropdown.options.length <= 1;
+  subDistrictDropdown.disabled = disable || subDistrictDropdown.options.length <= 1;
+}
+
+    
+// NEW FEATURE //    
+    
+// Helper to convert string or number to number safely
+function getNum(val) {
+  if (typeof val === "number") return val;
+  if (typeof val === "string") return Number(val.replace(/,/g, "").trim());
+  return 0;
+}
+
+// Update sliders for a State (standalone function)
+function updateSlidersFromStateData(stateName) {
+  const stateMetrics = metrics_states.find(
+    item => item.stname.toLowerCase() === stateName.toLowerCase()
+  );
+
+  if (!stateMetrics) {
+    console.warn("No metrics found for state:", stateName);
+    return;
+  }
+
+  const metricMapping = {
+    population: "Population",
+    male_ratio: "Male Ratio",
+    female_ratio: "Female Ratio",
+    rural_population: "Rural Population", // Ensure this matches your data exactly
+    urban_population: "Urban Population",
+    area: "Area",
+    density: "Density",
+    hospitals: "Hospitals",
+    railway_stations: "Railway Stations ", // Note trailing space if in your data
+    airports: "Airports"
+  };
+
+  Object.entries(metricMapping).forEach(([sliderId, metricKey]) => {
+    const slider = document.getElementById(sliderId);
+    const label = document.getElementById(sliderId + "-value");
+
+    if (slider && label && metricKey in stateMetrics) {
+      const val = getNum(stateMetrics[metricKey]);
+      slider.value = val;
+      label.textContent = val;
+    }
+  });
+    setTimeout(scrollToDemographicFilters, 300);
+}
+
+// Update sliders for a District (standalone function)
+function updateSlidersFromDistrict(districtName, stateName) {
+  console.log("Updating sliders for district:", districtName, "in", stateName);
+
+  const match = final_districts.find(entry =>
+    entry.stname?.trim().toLowerCase() === stateName.trim().toLowerCase() &&
+    entry.dtname?.trim().toLowerCase() === districtName.trim().toLowerCase()
+  );
+
+  if (!match) {
+    console.warn("No data found for district:", districtName, "in state:", stateName);
+    return;
+  }
+
+  const fields = {
+    population: "Population",
+    male_ratio: "Male Ratio",
+    female_ratio: "Female Ratio",
+    rural_population: "Rural Population",
+    urban_population: "Urban Population",
+    area: "Area",
+    density: "Density",
+    hospitals: "Hospitals",
+    railway_stations: "Railway Stations ",
+    airports: "Airports"
+  };
+
+  for (const [id, key] of Object.entries(fields)) {
+    const val = getNum(match[key]);
+    const slider = document.getElementById(id);
+    const label = document.getElementById(`${id}-value`);
+    if (slider && label) {
+      slider.value = val;
+      label.textContent = val;
+    } else {
+      console.warn(`Missing slider or label for: ${id}`);
+    }
+  }
+  setTimeout(scrollToDemographicFilters, 300);
+  console.log("District slider update complete.");
+}
+
+// Update sliders for a Sub-District (standalone function)
+function updateSlidersFromSubDistrict(subDistrictName, districtName, stateName) {
+  console.log("Updating sliders for sub-district:", subDistrictName, "in", districtName, ",", stateName);
+
+  const match = final_subdistricts.find(entry =>
+    entry.stname?.trim().toLowerCase() === stateName.trim().toLowerCase() &&
+    entry.dtname?.trim().toLowerCase() === districtName.trim().toLowerCase() &&
+    entry.sdtname?.trim().toLowerCase() === subDistrictName.trim().toLowerCase()
+  );
+
+  if (!match) {
+    console.warn("No data found for sub-district:", subDistrictName);
+    return;
+  }
+
+  console.log("Matched sub-district data:", match);
+
+  const fields = {
+    population: "Population",
+    male_ratio: "Male Ratio",
+    female_ratio: "Female Ratio",
+    rural_population: "Rural Population",
+    urban_population: "Urban Population",
+    area: "Area",
+    density: "Density",
+    hospitals: "Hospitals",
+    railway_stations: "Railway Stations ",
+    airports: "Airports"
+  };
+
+  for (const [id, key] of Object.entries(fields)) {
+    const val = getNum(match[key]);
+    const slider = document.getElementById(id);
+    const label = document.getElementById(`${id}-value`);
+    if (slider && label) {
+      slider.value = val;
+      label.textContent = val;
+    } else {
+      console.warn(`Slider or label missing for: ${id}`);
+    }
+  }
+  setTimeout(scrollToDemographicFilters, 300);
+  console.log("Sub-district slider update complete.");
+}
+    
+function updateSlidersFromPincode(data) {
+  const getNum = val => {
+    if (typeof val === "number") return val;
+    if (typeof val === "string") return Number(val.replace(/,/g, ""));
+    return 0;
+  };
+
+  const fields = {
+    population: "Population",
+    male_ratio: "Male Ratio",
+    female_ratio: "Female Ratio",
+    rural_population: "Rural Population",
+    urban_population: "Urban Population",
+    area: "Area",
+    density: "Density",
+    hospitals: "Hospitals",
+    railway_stations: "Railway Stations ",
+    airports: "Airports"
+  };
+
+  for (const [id, key] of Object.entries(fields)) {
+    const slider = document.getElementById(id);
+    const label = document.getElementById(`${id}-value`);
+    const val = getNum(data[key]);
+    if (slider && label) {
+      slider.value = val;
+      label.textContent = val;
+    }
+  }
+  setTimeout(scrollToDemographicFilters, 300);
+  console.log("Pincode sliders updated.");
+}
+
+    
+function updateSlidersFromCity(data) {
+  if (!data || typeof data !== "object") {
+    console.warn("Invalid or missing city data for slider update.");
+    return;
+  }
+
+  const getNum = val => {
+    if (typeof val === "number") return val;
+    if (typeof val === "string") return Number(val.replace(/,/g, ""));
+    return 0;
+  };
+
+  const formatNumber = num => {
+    return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  };
+
+  const fields = {
+    population: "Population",
+    male_ratio: "Male Ratio",
+    female_ratio: "Female Ratio",
+    rural_population: "Rural Population",
+    urban_population: "Urban Population",
+    area: "Area",
+    density: "Density",
+    hospitals: "Hospitals",
+    railway_stations: "Railway Stations",
+    airports: "Airports"
+  };
+
+  for (const [id, key] of Object.entries(fields)) {
+    const slider = document.getElementById(id);
+    const label = document.getElementById(`${id}-value`);
+    const val = getNum(data[key]);
+    if (slider) slider.value = val;
+    if (label) label.textContent = formatNumber(val);
+  }
+
+  if (typeof scrollToDemographicFilters === "function") {
+    setTimeout(scrollToDemographicFilters, 300);
+  }
+
+  console.log("✅ City sliders updated from:", data.city || "Unknown");
+}
+    
+    
+document.getElementById("resetStatesBtn").addEventListener("click", function () {
+  // Clear the state dropdown selection (simulate "All States" selection)
+  stateDropdown.value = "";
+
+  // Clear and disable district & subdistrict dropdowns
+  districtDropdown.innerHTML = '<option value="">-- Select a District --</option>';
+  subDistrictDropdown.innerHTML = '<option value="">-- Select a Sub-District --</option>';
+  districtDropdown.disabled = true;
+  subDistrictDropdown.disabled = true;
+
+  // Remove all other layers if present
+    if (subDistrictsLayer) {
+    map.removeLayer(subDistrictsLayer);
+    subDistrictsLayer = null;
+    }
+    if (districtsLayer) {
+    map.removeLayer(districtsLayer);
+    districtsLayer = null;
+    }
+    if (pincodesLayer) {
+    map.removeLayer(pincodesLayer);
+    pincodesLayer = null;
+    }
+    if (stateMaskLayer) {
+    map.removeLayer(stateMaskLayer);
+    stateMaskLayer = null;
+    }
+
+// ✅ CLEAR HIGHLIGHTED STATE
+if (selectedStateLayer && statesLayer) {
+  statesLayer.resetStyle(selectedStateLayer);
+  selectedStateLayer = null;
+}
+
+// Reset all metric sliders to their default values
+  const sliders = [
+    { id: 'population', defaultValue: 9500000 },
+    { id: 'male_ratio', defaultValue: 675 },
+    { id: 'female_ratio', defaultValue: 500 },
+    { id: 'rural_population', defaultValue: 500000 },
+    { id: 'urban_population', defaultValue: 500000 },
+    { id: 'area', defaultValue: 200000 },
+    { id: 'density', defaultValue: 7500 },
+    { id: 'hospitals', defaultValue: 2500 },
+    { id: 'railway_stations', defaultValue: 500 },
+    { id: 'airports', defaultValue: 25 }
+  ];
+
+  sliders.forEach(slider => {
+    const element = document.getElementById(slider.id);
+    if (element) {
+      element.value = slider.defaultValue;
+      // Trigger the update function to refresh displayed values
+      updateValue(slider.id, slider.defaultValue);
+    }
+  });
+
+// Add back the full states layer
+if (!statesLayer) {
+  statesLayer = L.geoJSON(states_data, {
+    style: {/* your default style */},
+    onEachFeature: onEachStateFeature
+  }).addTo(map);
+} else if (!map.hasLayer(statesLayer)) {
+  statesLayer.addTo(map);
+}
+
+  toggleLocationDropdowns(false); // enable dropdowns if your logic needs it
+
+  // Reset map view to default India center and zoom
+  map.setView([23.5937, 82.5629], 5);
+});
+
+    
+    
+</script>
+
+</body>
+</html>
